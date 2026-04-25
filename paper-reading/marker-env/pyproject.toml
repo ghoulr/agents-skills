@@ -1,0 +1,8 @@
+[project]
+name = "tmp2"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "marker-pdf>=1.10.2",
+]
