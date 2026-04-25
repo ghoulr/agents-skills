@@ -66,6 +66,19 @@ Based on the user interview, fill in these components:
 - **compatibility**: Required tools, dependencies (optional, rarely needed)
 - **the rest of the skill :)**
 
+### Core Principles
+
+**Concise is Key** — The context window is a shared resource. Default assumption: the agent is already smart. Only add information it doesn't already have. Challenge each piece: "Does this paragraph justify its token cost?" Prefer concise examples over verbose explanations.
+
+**Set Appropriate Degrees of Freedom** — Match constraint level to task fragility:
+- **High freedom** (text instructions): Multiple valid approaches, context-dependent decisions
+- **Medium freedom** (pseudocode / parameterized scripts): Preferred pattern exists, some variation OK
+- **Low freedom** (fixed scripts, few parameters): Fragile operations, consistency critical, specific sequence required
+
+Think of the agent as walking a path: a narrow bridge over cliffs needs guardrails (low freedom); an open field allows many routes (high freedom).
+
+**Protect Validation Integrity** — When using subagents to validate skills, pass raw artifacts (prompts, outputs, diffs) — not your conclusions or expected answers. The goal is to test whether the skill generalizes, not whether another agent can reconstruct the answer from leaked context.
+
 ### Skill Writing Guide
 
 #### Anatomy of a Skill
@@ -81,6 +94,10 @@ skill-name/
     └── assets/     - Files used in output (templates, icons, fonts)
 ```
 
+#### What Not to Include
+
+A skill should only contain files that directly support its functionality. Do NOT create README.md, CHANGELOG.md, INSTALLATION_GUIDE.md, QUICK_REFERENCE.md, or other auxiliary documentation. The skill should only contain what an agent needs to do the job — not documentation about the process of creating it.
+
 #### Progressive Disclosure
 
 Skills use a three-level loading system:
@@ -88,14 +105,28 @@ Skills use a three-level loading system:
 2. **SKILL.md body** - In context whenever skill triggers (<500 lines ideal)
 3. **Bundled resources** - As needed (unlimited, scripts can execute without loading)
 
-These word counts are approximate and you can feel free to go longer if needed.
+Keep SKILL.md under 500 lines. If approaching this limit, split content into reference files with clear pointers from SKILL.md about when to read them. For large reference files (>300 lines), include a table of contents.
 
-**Key patterns:**
-- Keep SKILL.md under 500 lines; if you're approaching this limit, add an additional layer of hierarchy along with clear pointers about where the model using the skill should go next to follow up.
-- Reference files clearly from SKILL.md with guidance on when to read them
-- For large reference files (>300 lines), include a table of contents
+**Key principle:** When a skill supports multiple variations, frameworks, or domains, keep only the core workflow and selection guidance in SKILL.md. Move variant-specific details into separate reference files.
 
-**Domain organization**: When a skill supports multiple domains/frameworks, organize by variant:
+**Pattern 1: High-level guide with references**
+
+```markdown
+# PDF Processing
+
+## Quick start
+Extract text with pdfplumber:
+[code example]
+
+## Advanced features
+- **Form filling**: See [FORMS.md](FORMS.md) for complete guide
+- **API reference**: See [REFERENCE.md](REFERENCE.md) for all methods
+```
+
+The agent loads FORMS.md or REFERENCE.md only when needed.
+
+**Pattern 2: Domain/framework organization**
+
 ```
 cloud-deploy/
 ├── SKILL.md (workflow + selection)
@@ -104,7 +135,29 @@ cloud-deploy/
     ├── gcp.md
     └── azure.md
 ```
-The agent reads only the relevant reference file.
+
+The agent reads only the relevant variant.
+
+**Pattern 3: Conditional details**
+
+```markdown
+# DOCX Processing
+
+## Creating documents
+Use docx-js for new documents. See [DOCX-JS.md](DOCX-JS.md).
+
+## Editing documents
+For simple edits, modify the XML directly.
+
+**For tracked changes**: See [REDLINING.md](REDLINING.md)
+**For OOXML details**: See [OOXML.md](OOXML.md)
+```
+
+The agent loads REDLINING.md or OOXML.md only when those features are needed.
+
+**Guidelines:**
+- Keep references one level deep from SKILL.md — no nested references
+- For reference files >100 lines, include a table of contents at the top
 
 #### Principle of Lack of Surprise
 
